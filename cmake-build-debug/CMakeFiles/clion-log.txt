@@ -1,0 +1,15 @@
+/opt/clion-2017.3.4/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" "/home/sasha/Documents/ogl final"
+-- Configuring done
+CMake Error at CMakeLists.txt:9 (add_executable):
+  Cannot find source file:
+
+    build/simple.frag
+
+  Tried extensions .c .C .c++ .cc .cpp .cxx .m .M .mm .h .hh .h++ .hm .hpp
+  .hxx .in .txx
+
+
+CMake Error: CMake can not determine linker language for target: ogl_final
+CMake Error: Cannot determine link language for target "ogl_final".
+-- Generating done
+-- Build files have been written to: /home/sasha/Documents/ogl final/cmake-build-debug

@@ -1,0 +1,1 @@
+/usr/bin/c++  -g   CMakeFiles/ogl_final.dir/src/geometry.cpp.o CMakeFiles/ogl_final.dir/src/glwindow.cpp.o CMakeFiles/ogl_final.dir/src/main.cpp.o ../build/geometry.o ../build/glwindow.o ../build/main.o  -o ogl_final 
