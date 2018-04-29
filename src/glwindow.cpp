@@ -3,13 +3,9 @@
 
 #include "SDL.h"
 #include <GL/glew.h>
+#include <algorithm>
 
 #include "glwindow.h"
-#include "geometry.h"
-
-// Include GLM
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
 using namespace glm;
@@ -100,6 +96,17 @@ GLuint loadShaderProgram(const char *vertShaderFilename,
 
 OpenGLWindow::OpenGLWindow()
 {
+    projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+    // Or, for an ortho camera :
+    // projection = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f); // In world coordinates
+
+    // Camera matrix
+    view = glm::lookAt(
+            vec3(5, 5, 5), // Camera is at (4,3,3), in World Space
+            vec3(0, 0, 0), // and looks at the origin
+            glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+    );
+
     state[0] = "t";
     state[1] = "x";
 }
@@ -112,7 +119,6 @@ void OpenGLWindow::initGL()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    sdlWin = nullptr;
     sdlWin = SDL_CreateWindow("OpenGL Prac 1",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               640, 480, SDL_WINDOW_OPENGL);
@@ -158,43 +164,17 @@ void OpenGLWindow::initGL()
     shader = loadShaderProgram("SimpleTransform.vertexshader", "SingleColor.fragmentshader");
     glUseProgram(shader);
 
-
     int colorLoc = glGetUniformLocation(shader, "objectColor");
     glUniform3f(colorLoc, 0.0f, 0.0f, 0.0f);
 
-    ///////
-    lastdt = 0.0;
-
-    projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
-    // Or, for an ortho camera :
-    // projection = glm::ortho(-10.0f,10.0f,-10.0f,10.0f,0.0f,100.0f); // In world coordinates
-
-    // Camera matrix
-    view = glm::lookAt(
-            vec3(5, 5, 5), // Camera is at (4,3,3), in World Space
-            vec3(0, 0, 0), // and looks at the origin
-            glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-    );
-
-    cout << "constructor" << endl;
-
-
-    //////
-
     // Load the model that we want to use and buffer the vertex attributes
+
+    Gameobject go;
     go.geom.loadFromOBJFile("../objects/doggo.obj");
+    gos.push_back(go);
+//    go1.geom.loadFromOBJFile("../objects/tri.obj");
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // for wire mesh
-
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-
-    glBufferData(GL_ARRAY_BUFFER,
-                 go.geom.vertexCount() * 3 * sizeof(float),
-                 go.geom.vertexData(),
-                 GL_STATIC_DRAW);
 
     glPrintError("Setup complete", true);
 
@@ -202,63 +182,34 @@ void OpenGLWindow::initGL()
 
 void OpenGLWindow::render()
 {
-    float dt = getDeltatime();
-    totalTime += dt;
+    for (Gameobject go : gos)
+    {
+        objToGL(go);
 
-    handleInput();
-    //glBindVertexArray(vao);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        handleInput();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // // Move forward
-    // if (glfwGetKey( GLFW_KEY_UP ) == GLFW_PRESS){
-    //     position += direction * deltaTime * speed;
-    // }
-    // // Move backward
-    // if (glfwGetKey( GLFW_KEY_DOWN ) == GLFW_PRESS){
-    //     position -= direction * deltaTime * speed;
-    // }
-    // // Strafe right
-    // if (glfwGetKey( GLFW_KEY_RIGHT ) == GLFW_PRESS){
-    //     position += right * deltaTime * speed;
-    // }
-    // // Strafe left
-    // if (glfwGetKey( GLFW_KEY_LEFT ) == GLFW_PRESS){
-    //     position -= right * deltaTime * speed;
-    // }
+        glm::mat4 mvp = projection * view * go.model;
 
-    // position += -right * deltaTime * speed;
-    // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+        // Send our transformation to the currently bound shader,
+        glUniformMatrix4fv(glGetUniformLocation(shader, "MVP"), 1, GL_FALSE, &mvp[0][0]);
 
-    // Model = glm::translate(Model, -right);
-    // Model = glm::rotate(Model, 30.0f, vec3(4, 4, 3));
-    // Our ModelViewProjection : multiplication of our 3 matrices
+        glEnableVertexAttribArray(0);
 
-    glm::mat4 mvp = projection * view * go.model;
+        glBindBuffer(GL_ARRAY_BUFFER, vao);
+        glVertexAttribPointer(
+                0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+                3,                  // size
+                GL_FLOAT,           // type
+                GL_FALSE,           // normalized?
+                0,                  // stride
+                (void *) 0          // array buffer offset
+        );
 
-    // Send our transformation to the currently bound shader,
-    glUniformMatrix4fv(glGetUniformLocation(shader, "MVP"), 1, GL_FALSE, &mvp[0][0]);
-
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vao);
-    glVertexAttribPointer(
-            0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
-            3,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            0,                  // stride
-            (void *) 0          // array buffer offset
-    );
-
-
-    glLoadIdentity(); // ?
-
-    glDrawArrays(GL_TRIANGLES, 0, go.geom.vertexCount());
-
+        glDrawArrays(GL_TRIANGLES, 0, go.geom.vertexCount() + go.geom.vertexCount());
+    }
     // Swap the front and back buffers on the window, effectively putting what we just "drew"
     // onto the screen (whereas previously it only existed in memory)
-
-    lastdt = SDL_GetTicks(); // setting this for the next loop
     SDL_GL_SwapWindow(sdlWin);
 }
 
@@ -285,72 +236,94 @@ void OpenGLWindow::cleanup()
     SDL_DestroyWindow(sdlWin);
 }
 
-float OpenGLWindow::getDeltatime()
-{
-    return float(SDL_GetTicks() - lastdt);
-}
-
 void OpenGLWindow::handleInput()
 {
+    int fixCode = 1073741881 - 128;
+
     vec3 x = vec3(1.f, 0, 0);
     vec3 y = vec3(0, 1.f, 0);
     vec3 z = vec3(0, 0, 1.f);
+    vec3 axis;
+    if (state[1] == "x")
+    {
+        axis = x;
+    } else if (state[1] == "y")
+    {
+        axis = y;
+    } else
+    {
+        axis = z;
+    }
 
-    if (inputHandler[SDLK_LEFT - 1073741881 + 127])
+
+    if (inputHandler[SDLK_LEFT - fixCode])
     {
-        cout << "heerlll\n";
-    } else if (inputHandler[SDLK_RIGHT - 1073741881 + 127])
-    {
-        cout << "heerrrr\n";
-    } else if (inputHandler[SDLK_UP - 1073741881 + 127])
-    {
-        cout << "heer\n";
-        vec3 axis;
-        if (state[1] == "x")
-        {
-            axis = x;
-        } else if (state[1] == "y")
-        {
-            axis = y;
-        } else
-        {
-            axis = z;
-        }
-        
         if (state[0] == "t")
         {
-            go.translate(axis * 0.01f);
+            for (Gameobject &go : gos)
+                go.translate(-axis);
+
+
         } else if (state[0] == "s")
         {
-            go.scale(vec3(1.2, 1.2, 1.2));
+            for (Gameobject &go : gos)
+                go.scale(vec3(0.8, 0.8, 0.8));
+
         } else if (state[0] == "r")
         {
-            go.rotate(0.1f, axis);
-        }
-    } else if (inputHandler[SDLK_DOWN - 1073741881 + 127])
-    {
-        // TODO method
-        vec3 axis;
-        if (state[1] == "x")
-        {
-            axis = x;
-        } else if (state[1] == "y")
-        {
-            axis = y;
-        } else
-        {
-            axis = z;
-        }
+            for (Gameobject &go : gos)
+                go.rotate(-0.1f, axis);
 
+        }
+    } else if (inputHandler[SDLK_RIGHT - fixCode])
+    {
         if (state[0] == "t")
         {
-            go.translate(-axis * 0.01f);
+            for (Gameobject &go : gos)
+                go.translate(axis * 0.01f);
+
         } else if (state[0] == "s")
         {
-            go.scale(vec3(0.8, 0.8, 0.8));
+            for (Gameobject &go : gos)
+                go.scale(vec3(1.2, 1.2, 1.2));
+
         } else if (state[0] == "r")
         {
-            go.rotate(-0.1f, axis);
+            for (Gameobject &go : gos)
+                go.rotate(0.1f, axis);
+
+        }
+    } else if (inputHandler[SDLK_UP - fixCode])
+    {
+        if (state[0] == "t")
+        {
+            for (Gameobject &go : gos)
+                go.translate(axis * 0.01f);
+
+        } else if (state[0] == "s")
+        {
+            for (Gameobject &go : gos)
+                go.scale(vec3(1.2, 1.2, 1.2));
+
+        } else if (state[0] == "r")
+        {
+            for (Gameobject &go : gos)
+                go.rotate(0.1f, axis);
+        }
+    } else if (inputHandler[SDLK_DOWN - fixCode])
+    {
+        if (state[0] == "t")
+        {
+            for (Gameobject &go : gos)
+                go.translate(-axis * 0.01f);
+        } else if (state[0] == "s")
+        {
+            for (Gameobject &go : gos)
+                go.scale(vec3(0.8, 0.8, 0.8));
+        } else if (state[0] == "r")
+        {
+            for (Gameobject &go : gos)
+                go.rotate(-0.1f, axis);
         }
     } else if (inputHandler[SDLK_t])
     {
@@ -371,4 +344,28 @@ void OpenGLWindow::handleInput()
     {
         state[1] = "z";
     }
+}
+
+void OpenGLWindow::objToGL(Gameobject &go)
+{
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+    glBufferData(GL_ARRAY_BUFFER,
+                 go.geom.vertexCount() * 3 * sizeof(float),
+                 go.geom.vertexData(),
+                 GL_STATIC_DRAW);
+
+//    glBufferSubData(GL_ARRAY_BUFFER,
+//                    0,
+//                    go.geom.vertexCount() * 3 * sizeof(float),
+//                    go.geom.vertexData());
+//
+//    glBufferSubData(GL_ARRAY_BUFFER,
+//                    go.geom.vertexCount() * 3 * sizeof(float),
+//                    go1.geom.vertexCount() * 3 * sizeof(float),
+//                    go1.geom.vertexData());
 }

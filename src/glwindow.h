@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <vector>
 
 #include "geometry.h"
 #include "Gameobject.h"
@@ -38,16 +39,13 @@ private:
     GLuint shader;
     GLuint vertexBuffer;
 
-    Gameobject go;
+    std::vector<Gameobject> gos;
 
     glm::mat4 projection;
     glm::mat4 view;
 
-    float lastdt;
-    float totalTime = 0;
-
     void handleInput();
-    float getDeltatime();
+    void objToGL(Gameobject &);
 };
 
 #endif

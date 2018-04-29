@@ -3,6 +3,18 @@
 
 #include "glwindow.h"
 
+int fixCode(const int &);
+
+int fixCode(int &x)
+{
+    if (x > 127)
+    {
+        x -= 1073741881;
+        x += 128;
+    }
+
+    return x;
+}
 // In order to make cross-platform development and deployment easy, SDL implements its own main
 // function, and instead calls out to our code at this SDL_main, however on linux this is not
 // needed (since the entrypoint in linux is already called main) so to keep things portable
@@ -19,8 +31,6 @@ int SDL_main(int argc, char** argv)
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Error", "Unable to initialize SDL", 0);
         return 1;
     }
-
-    std::cout << SDLK_LEFT - 1073741881 + 127 << std::endl;
 
     OpenGLWindow window;
     window.initGL();
@@ -40,25 +50,12 @@ int SDL_main(int argc, char** argv)
                 running = false;
             } else if (e.type == SDL_KEYDOWN)
             {
-                int code = e.key.keysym.sym;
-                std::cout << (code == SDLK_w) << std::endl;
-                if (code > 127)
-                {
-                    code -= 1073741881;
-                    code += 128;
-                }
-
+                int code = fixCode(e.key.keysym.sym);
                 window.inputHandler[code] = true;
 
             } else if (e.type == SDL_KEYUP)
             {
-                int code = e.key.keysym.sym;
-
-                if (code > 127)
-                {
-                    code -= 1073741881;
-                    code += 128;
-                }
+                int code = fixCode(e.key.keysym.sym);
                 window.inputHandler[code] = false;
             }
         }
