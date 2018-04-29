@@ -20,7 +20,17 @@ public:
     void cleanup();
 
     InputHandler inputHandler;
-
+    /**
+     * T = Translate
+     * R = Rotate
+     * S = Scale
+     * X,Y,Z = Change to that axis
+     *
+     * example: state[0] = T
+     *          state[1] = X
+     * This will translate on the x axis
+     */
+    std::string state [2];
 private:
     SDL_Window* sdlWin;
 

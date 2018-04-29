@@ -99,7 +99,10 @@ GLuint loadShaderProgram(const char *vertShaderFilename,
 }
 
 OpenGLWindow::OpenGLWindow()
-{}
+{
+    state[0] = "t";
+    state[1] = "x";
+}
 
 void OpenGLWindow::initGL()
 {
@@ -289,12 +292,83 @@ float OpenGLWindow::getDeltatime()
 
 void OpenGLWindow::handleInput()
 {
+    vec3 x = vec3(1.f, 0, 0);
+    vec3 y = vec3(0, 1.f, 0);
+    vec3 z = vec3(0, 0, 1.f);
+
     if (inputHandler[SDLK_LEFT - 1073741881 + 127])
-    {}
-    else if (inputHandler[SDLK_RIGHT - 1073741881 + 127])
-    {}
-    else if (inputHandler[SDLK_UP - 1073741881 + 127])
-    {}
-    else if (inputHandler[SDLK_DOWN - 1073741881 + 127])
-    {}
+    {
+        cout << "heerlll\n";
+    } else if (inputHandler[SDLK_RIGHT - 1073741881 + 127])
+    {
+        cout << "heerrrr\n";
+    } else if (inputHandler[SDLK_UP - 1073741881 + 127])
+    {
+        cout << "heer\n";
+        vec3 axis;
+        if (state[1] == "x")
+        {
+            axis = x;
+        } else if (state[1] == "y")
+        {
+            axis = y;
+        } else
+        {
+            axis = z;
+        }
+        
+        if (state[0] == "t")
+        {
+            go.translate(axis * 0.01f);
+        } else if (state[0] == "s")
+        {
+            go.scale(vec3(1.2, 1.2, 1.2));
+        } else if (state[0] == "r")
+        {
+            go.rotate(0.1f, axis);
+        }
+    } else if (inputHandler[SDLK_DOWN - 1073741881 + 127])
+    {
+        // TODO method
+        vec3 axis;
+        if (state[1] == "x")
+        {
+            axis = x;
+        } else if (state[1] == "y")
+        {
+            axis = y;
+        } else
+        {
+            axis = z;
+        }
+
+        if (state[0] == "t")
+        {
+            go.translate(-axis * 0.01f);
+        } else if (state[0] == "s")
+        {
+            go.scale(vec3(0.8, 0.8, 0.8));
+        } else if (state[0] == "r")
+        {
+            go.rotate(-0.1f, axis);
+        }
+    } else if (inputHandler[SDLK_t])
+    {
+        state[0] = "t";
+    } else if (inputHandler[SDLK_s])
+    {
+        state[0] = "s";
+    } else if (inputHandler[SDLK_r])
+    {
+        state[0] = "r";
+    } else if (inputHandler[SDLK_x])
+    {
+        state[1] = "x";
+    } else if (inputHandler[SDLK_y])
+    {
+        state[1] = "y";
+    } else if (inputHandler[SDLK_z])
+    {
+        state[1] = "z";
+    }
 }

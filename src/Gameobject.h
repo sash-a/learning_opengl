@@ -33,7 +33,6 @@ public:
 
     glm::mat4 model;
 
-
     void translate(const glm::vec3 &);
 
     void scale(const glm::vec3 &);

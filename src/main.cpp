@@ -62,7 +62,6 @@ int SDL_main(int argc, char** argv)
                 window.inputHandler[code] = false;
             }
         }
-        std::cout << window.inputHandler[119] << std::endl;
         window.render();
 
         // We sleep for 10ms here so as to prevent excessive CPU usage
