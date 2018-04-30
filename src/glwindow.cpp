@@ -168,22 +168,22 @@ void OpenGLWindow::initGL()
     glUniform3f(colorLoc, 0.0f, 0.0f, 0.0f);
 
     // Load the model that we want to use and buffer the vertex attributes
+    Gameobject go;
     go.geom.loadFromOBJFile("../objects/doggo.obj");
-//    gos.push_back(go);
+    gos.push_back(go);
+    GLuint v = 0;
+    vaos.push_back(v);
+    GLuint vert = 0;
+    vertexBuffers.push_back(vert);
 
+    Gameobject go1;
     go1.geom.loadFromOBJFile("../objects/tri.obj");
-//    GLuint v = 1;
-//    vaos.push_back(v);
-//    GLuint vert = 1;
-//    vertexBuffers.push_back(vert);
-
-//    Gameobject go1;
-//    go1.geom.loadFromOBJFile("../objects/tri.obj");
-//    gos.push_back(go1);
-//    GLuint v1 = 2;
-//    vao.push_back(v1);
-//    GLuint vert1 = 2;
-//    vertexBuffer.push_back(vert1);
+    gos.push_back(go1);
+    GLuint v1 = 1;
+    vaos.push_back(v1);
+    GLuint vert1 = 1;
+    vertexBuffers.push_back(vert1);
+    gos[1].translate(vec3(1, 0, 0));
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // for wire mesh
 
@@ -192,30 +192,32 @@ void OpenGLWindow::initGL()
 
 void OpenGLWindow::render()
 {
-    objToGL(1);
-
-    handleInput();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 mvp = projection * view * go.model;
+    for (int i = 0; i < gos.size(); ++i)
+    {
+        Gameobject go = gos[i];
+        objToGL(i);
+        handleInput();
+        glm::mat4 mvp = projection * view * go.model;
 
-    // Send our transformation to the currently bound shader,
-    glUniformMatrix4fv(glGetUniformLocation(shader, "MVP"), 1, GL_FALSE, &mvp[0][0]);
+        // Send our transformation to the currently bound shader,
+        glUniformMatrix4fv(glGetUniformLocation(shader, "MVP"), 1, GL_FALSE, &mvp[0][0]);
 
-    glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vao);
-    glVertexAttribPointer(
-            0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
-            3,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            0,                  // stride
-            (void *) 0          // array buffer offset
-    );
+        glBindBuffer(GL_ARRAY_BUFFER, vaos[i]);
+        glVertexAttribPointer(
+                0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+                3,                  // size
+                GL_FLOAT,           // type
+                GL_FALSE,           // normalized?
+                0,                  // stride
+                (void *) 0          // array buffer offset
+        );
 
-    glDrawArrays(GL_TRIANGLES, 0, go.geom.vertexCount() + go1.geom.vertexCount());
-
+        glDrawArrays(GL_TRIANGLES, 0, go.geom.vertexCount());
+    }
     // Swap the front and back buffers on the window, effectively putting what we just "drew"
     // onto the screen (whereas previously it only existed in memory)
     SDL_GL_SwapWindow(sdlWin);
@@ -240,9 +242,11 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
 void OpenGLWindow::cleanup()
 {
 
-    glDeleteBuffers(1, &(vertexBuffer));
-    glDeleteVertexArrays(1, &(vao));
-
+    for (int i = 0; i < gos.size(); ++i)
+    {
+        glDeleteBuffers(1, &(vertexBuffers[i]));
+        glDeleteVertexArrays(1, &(vaos[i]));
+    }
 
     SDL_DestroyWindow(sdlWin);
 }
@@ -271,18 +275,18 @@ void OpenGLWindow::handleInput()
     {
         if (state[0] == "t")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.translate(-axis * 0.01f);
 
 
         } else if (state[0] == "s")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.scale(vec3(0.8, 0.8, 0.8));
 
         } else if (state[0] == "r")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.rotate(-0.1f, axis);
 
         }
@@ -290,17 +294,17 @@ void OpenGLWindow::handleInput()
     {
         if (state[0] == "t")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.translate(axis * 0.01f);
 
         } else if (state[0] == "s")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.scale(vec3(1.2, 1.2, 1.2));
 
         } else if (state[0] == "r")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.rotate(0.1f, axis);
 
         }
@@ -308,34 +312,34 @@ void OpenGLWindow::handleInput()
     {
         if (state[0] == "t")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.translate(axis * 0.01f);
 
         } else if (state[0] == "s")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.scale(vec3(1.2, 1.2, 1.2));
 
         } else if (state[0] == "r")
         {
-//            for (Gameobject &go : gos)
-                go.rotate(0.1f, axis);
+            for (Gameobject &go : gos)
+                go.rotateAround(0.1f, axis, gos[0].pos);
         }
     } else if (inputHandler[SDLK_DOWN - fixCode])
     {
         if (state[0] == "t")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.translate(-axis * 0.01f);
 
         } else if (state[0] == "s")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.scale(vec3(0.8, 0.8, 0.8));
 
         } else if (state[0] == "r")
         {
-//            for (Gameobject &go : gos)
+            for (Gameobject &go : gos)
                 go.rotate(-0.1f, axis);
         }
     } else if (inputHandler[SDLK_t])
@@ -364,28 +368,28 @@ void OpenGLWindow::objToGL(const int &current)
     int bufSize = 0;
     for (Gameobject &go : gos)
     {
-        bufSize += (go.geom.vertexCount() * 3 * sizeof(float));
-
+        bufSize += (go.geom.vertexCount());
     }
+    bufSize *= 3 * sizeof(float);
 
     // NEED SPECIFIC BUFFER FOR EACH OBJ
-    glGenVertexArrays(1, &(vao));
-    glBindVertexArray(vao);
+    glGenVertexArrays(1, &(vaos[current]));
+    glBindVertexArray(vaos[current]);
 
-    glGenBuffers(1, &(vertexBuffer));
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glGenBuffers(1, &(vertexBuffers[current]));
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[current]);
     glBufferData(GL_ARRAY_BUFFER,
-                 (go.geom.vertexCount() + go1.geom.vertexCount()) * 3 * sizeof(float),
-                 0,
+                 gos[current].geom.vertexCount() * 3 * sizeof(float),
+                 gos[current].geom.vertexData(),
                  GL_STATIC_DRAW);
 
-    glBufferSubData(GL_ARRAY_BUFFER,
-                    0,
-                    go.geom.vertexCount() * 3 * sizeof(float),
-                    go.geom.vertexData());
-    glBufferSubData(GL_ARRAY_BUFFER,
-                    go.geom.vertexCount() * 3 * sizeof(float),
-                    go1.geom.vertexCount() * 3 * sizeof(float),
-                    go1.geom.vertexData());
+//    glBufferSubData(GL_ARRAY_BUFFER,
+//                    0,
+//                    go.geom.vertexCount() * 3 * sizeof(float),
+//                    go.geom.vertexData());
+//    glBufferSubData(GL_ARRAY_BUFFER,
+//                    go.geom.vertexCount() * 3 * sizeof(float),
+//                    go1.geom.vertexCount() * 3 * sizeof(float),
+//                    go1.geom.vertexData());
 
 }

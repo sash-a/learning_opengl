@@ -19,25 +19,17 @@ public:
     Gameobject();
 
     GeometryData geom;
-
-    float horizontalAngle;
-    float verticalAngle;// Direction : Spherical coordinates to Cartesian coordinates conversion
-    glm::vec3 direction;
-
-    // Right vector
-    glm::vec3 right;
-    // Up vector : perpendicular to both direction and right
-    glm::vec3 up;
-
-    float speed;
-
     glm::mat4 model;
+
+    glm::vec3 pos;
 
     void translate(const glm::vec3 &);
 
     void scale(const glm::vec3 &);
 
     void rotate(const float &degrees, const glm::vec3 &axis);
+
+    void rotateAround(const float &degrees, const glm::vec3 &axis, const glm::vec3 &point);
 
     void loadObj(const std::string &file);
 };

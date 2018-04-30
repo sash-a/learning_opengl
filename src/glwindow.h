@@ -36,14 +36,10 @@ private:
     SDL_Window* sdlWin;
 
     std::vector<GLuint> vaos;
-    GLuint vao;
     GLuint shader;
     std::vector<GLuint> vertexBuffers;
-    GLuint vertexBuffer;
 
     std::vector<Gameobject> gos;
-    Gameobject go;
-    Gameobject go1;
 
     glm::mat4 projection;
     glm::mat4 view;
