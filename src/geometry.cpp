@@ -314,3 +314,8 @@ void* GeometryData::bitangentData()
 {
     return (void*)&bitangents[0];
 }
+
+std::vector<float> GeometryData::getVertices()
+{
+    return vertices;
+}

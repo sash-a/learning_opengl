@@ -20,6 +20,8 @@ public:
     bool handleEvent(SDL_Event e);
     void cleanup();
 
+    void genObject();
+
     InputHandler inputHandler;
     /**
      * T = Translate

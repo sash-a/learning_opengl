@@ -102,7 +102,7 @@ OpenGLWindow::OpenGLWindow()
 
     // Camera matrix
     view = glm::lookAt(
-            vec3(5, 5, 5), // Camera is at (4,3,3), in World Space
+            vec3(10, 10, 10), // Camera is at (4,3,3), in World Space
             vec3(0, 0, 0), // and looks at the origin
             glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
     );
@@ -167,23 +167,7 @@ void OpenGLWindow::initGL()
     int colorLoc = glGetUniformLocation(shader, "objectColor");
     glUniform3f(colorLoc, 0.0f, 0.0f, 0.0f);
 
-    // Load the model that we want to use and buffer the vertex attributes
-    Gameobject go;
-    go.geom.loadFromOBJFile("../objects/doggo.obj");
-    gos.push_back(go);
-    GLuint v = 0;
-    vaos.push_back(v);
-    GLuint vert = 0;
-    vertexBuffers.push_back(vert);
-
-    Gameobject go1;
-    go1.geom.loadFromOBJFile("../objects/tri.obj");
-    gos.push_back(go1);
-    GLuint v1 = 1;
-    vaos.push_back(v1);
-    GLuint vert1 = 1;
-    vertexBuffers.push_back(vert1);
-    gos[1].translate(vec3(1, 0, 0));
+    genObject();
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // for wire mesh
 
@@ -287,7 +271,7 @@ void OpenGLWindow::handleInput()
         } else if (state[0] == "r")
         {
             for (Gameobject &go : gos)
-                go.rotate(-0.1f, axis);
+                go.rotateAround(-0.1f, axis, gos[0].pos);
 
         }
     } else if (inputHandler[SDLK_RIGHT - fixCode])
@@ -305,7 +289,7 @@ void OpenGLWindow::handleInput()
         } else if (state[0] == "r")
         {
             for (Gameobject &go : gos)
-                go.rotate(0.1f, axis);
+                go.rotateAround(0.1f, axis, gos[0].pos);
 
         }
     } else if (inputHandler[SDLK_UP - fixCode])
@@ -340,7 +324,7 @@ void OpenGLWindow::handleInput()
         } else if (state[0] == "r")
         {
             for (Gameobject &go : gos)
-                go.rotate(-0.1f, axis);
+                go.rotateAround(-0.1f, axis, gos[0].pos);
         }
     } else if (inputHandler[SDLK_t])
     {
@@ -360,18 +344,15 @@ void OpenGLWindow::handleInput()
     } else if (inputHandler[SDLK_z])
     {
         state[1] = "z";
-    }
+    } //else if (inputHandler[SDLK_a])
+//    {
+//        gos[0].model = mat4(1.f);
+//        genObject();
+//    }
 }
 
 void OpenGLWindow::objToGL(const int &current)
 {
-    int bufSize = 0;
-    for (Gameobject &go : gos)
-    {
-        bufSize += (go.geom.vertexCount());
-    }
-    bufSize *= 3 * sizeof(float);
-
     // NEED SPECIFIC BUFFER FOR EACH OBJ
     glGenVertexArrays(1, &(vaos[current]));
     glBindVertexArray(vaos[current]);
@@ -382,14 +363,49 @@ void OpenGLWindow::objToGL(const int &current)
                  gos[current].geom.vertexCount() * 3 * sizeof(float),
                  gos[current].geom.vertexData(),
                  GL_STATIC_DRAW);
+}
 
-//    glBufferSubData(GL_ARRAY_BUFFER,
-//                    0,
-//                    go.geom.vertexCount() * 3 * sizeof(float),
-//                    go.geom.vertexData());
-//    glBufferSubData(GL_ARRAY_BUFFER,
-//                    go.geom.vertexCount() * 3 * sizeof(float),
-//                    go1.geom.vertexCount() * 3 * sizeof(float),
-//                    go1.geom.vertexData());
+void OpenGLWindow::genObject()
+{
+    // Load the model that we want to use and buffer the vertex attributes
+    Gameobject go;
+    go.loadObj("../objects/doggo.obj");
+    gos.push_back(go);
 
+    GLuint v;
+    vaos.push_back(v);
+
+    GLuint vert;
+    vertexBuffers.push_back(vert);
+
+    if (gos.size() != 1)
+    {
+        Gameobject &parent = gos[0];
+
+        vec3 newPos;
+
+        if (gos.size() % 2 != 0)
+        {
+            newPos = vec3(-(parent.x_max - parent.x_min), parent.y_min, parent.z_min);
+            cout << parent.x_max - parent.x_min << endl;
+            for (int i = 2; i < gos.size(); i += 2)
+            {
+                cout << gos[i].x_max - gos[i].x_min << endl;
+                newPos.x -= (gos[i].x_max - gos[i].x_min);
+            }
+        } else
+        {
+            newPos = vec3((parent.x_max - parent.x_min), parent.y_min, parent.z_min);
+            cout << parent.x_max - parent.x_min << endl;
+            for (int i = 1; i < gos.size(); i += 2)
+            {
+                cout << gos[i].x_max - gos[i].x_min << endl;
+                newPos.x += (gos[i].x_max - gos[i].x_min);
+            }
+        }
+
+        gos[gos.size() - 1].translate(newPos);
+    }
+
+    cout << "doneobj\n\n";
 }
