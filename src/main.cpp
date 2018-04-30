@@ -52,6 +52,10 @@ int SDL_main(int argc, char** argv)
             {
                 int code = fixCode(e.key.keysym.sym);
                 window.inputHandler[code] = true;
+                if(code == SDLK_a)
+                {
+                    window.genObject();
+                }
 
             } else if (e.type == SDL_KEYUP)
             {

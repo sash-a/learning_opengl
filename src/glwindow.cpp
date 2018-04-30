@@ -367,6 +367,8 @@ void OpenGLWindow::objToGL(const int &current)
 
 void OpenGLWindow::genObject()
 {
+    if (!gos.empty()) gos[0].model = glm::mat4(1.0f);
+
     // Load the model that we want to use and buffer the vertex attributes
     Gameobject go;
     go.loadObj("../objects/doggo.obj");
@@ -384,10 +386,10 @@ void OpenGLWindow::genObject()
 
         vec3 newPos;
 
+        // Alternates placements from left to right of original object.
         if (gos.size() % 2 != 0)
         {
-            newPos = vec3(-(parent.x_max - parent.x_min), parent.y_min, parent.z_min);
-            cout << parent.x_max - parent.x_min << endl;
+            newPos = vec3(-(parent.x_max - parent.x_min), 0, 0);
             for (int i = 2; i < gos.size(); i += 2)
             {
                 cout << gos[i].x_max - gos[i].x_min << endl;
@@ -395,8 +397,7 @@ void OpenGLWindow::genObject()
             }
         } else
         {
-            newPos = vec3((parent.x_max - parent.x_min), parent.y_min, parent.z_min);
-            cout << parent.x_max - parent.x_min << endl;
+            newPos = vec3((parent.x_max - parent.x_min), 0, 0);
             for (int i = 1; i < gos.size(); i += 2)
             {
                 cout << gos[i].x_max - gos[i].x_min << endl;
