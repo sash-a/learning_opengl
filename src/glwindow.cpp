@@ -185,8 +185,15 @@ void OpenGLWindow::render()
         handleInput();
         glm::mat4 mvp = projection * view * go.model;
 
+
         // Send our transformation to the currently bound shader,
         glUniformMatrix4fv(glGetUniformLocation(shader, "MVP"), 1, GL_FALSE, &mvp[0][0]);
+
+        int colorLoc = glGetUniformLocation(shader, "objectColor");
+        float x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX));
+        float y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX));
+        float z = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX));
+        glUniform3f(colorLoc, x, y, z);
 
         glEnableVertexAttribArray(0);
 
@@ -201,6 +208,9 @@ void OpenGLWindow::render()
         );
 
         glDrawArrays(GL_TRIANGLES, 0, go.geom.vertexCount());
+
+        glDisableVertexAttribArray(0);
+        glDisableVertexAttribArray(1);
     }
     // Swap the front and back buffers on the window, effectively putting what we just "drew"
     // onto the screen (whereas previously it only existed in memory)

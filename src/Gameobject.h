@@ -8,6 +8,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include <GL/glew.h>
+
 #include <cmath>
 #include <string>
 #include "geometry.h"
@@ -29,6 +32,8 @@ public:
     float z_max = -10000;
     float z_min = 10000;
 
+
+    GLuint colorbuffer;
 
     GeometryData geom;
     glm::mat4 model;

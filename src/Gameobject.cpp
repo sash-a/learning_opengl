@@ -9,6 +9,7 @@ Gameobject::Gameobject()
 {
     pos = glm::vec3(0, 0, 0);
     model = glm::mat4(1.0f);
+    colorbuffer;
 
 }
 
