@@ -344,11 +344,7 @@ void OpenGLWindow::handleInput()
     } else if (inputHandler[SDLK_z])
     {
         state[1] = "z";
-    } //else if (inputHandler[SDLK_a])
-//    {
-//        gos[0].model = mat4(1.f);
-//        genObject();
-//    }
+    }
 }
 
 void OpenGLWindow::objToGL(const int &current)
@@ -367,7 +363,7 @@ void OpenGLWindow::objToGL(const int &current)
 
 void OpenGLWindow::genObject()
 {
-    if (!gos.empty()) gos[0].model = glm::mat4(1.0f);
+//    if (!gos.empty()) gos[0].model = glm::mat4(1.0f);
 
     // Load the model that we want to use and buffer the vertex attributes
     Gameobject go;
@@ -380,33 +376,34 @@ void OpenGLWindow::genObject()
     GLuint vert;
     vertexBuffers.push_back(vert);
 
-    if (gos.size() != 1)
+    for (int i = 0; i < gos.size(); ++i)
     {
+        gos[i].model = glm::mat4(1.0f); // reset transform
+
+        if (i == 0)
+            continue;
+
         Gameobject &parent = gos[0];
 
         vec3 newPos;
 
         // Alternates placements from left to right of original object.
-        if (gos.size() % 2 != 0)
+        if (i % 2 != 0)
         {
             newPos = vec3(-(parent.x_max - parent.x_min), 0, 0);
-            for (int i = 2; i < gos.size(); i += 2)
+            for (int j = 2; j < i; j += 2)
             {
-                cout << gos[i].x_max - gos[i].x_min << endl;
-                newPos.x -= (gos[i].x_max - gos[i].x_min);
+                newPos.x -= (gos[j].x_max - gos[j].x_min);
             }
         } else
         {
             newPos = vec3((parent.x_max - parent.x_min), 0, 0);
-            for (int i = 1; i < gos.size(); i += 2)
+            for (int j = 1; j < i; j += 2)
             {
-                cout << gos[i].x_max - gos[i].x_min << endl;
-                newPos.x += (gos[i].x_max - gos[i].x_min);
+                newPos.x += (gos[j].x_max - gos[j].x_min);
             }
         }
 
-        gos[gos.size() - 1].translate(newPos);
+        gos[i].translate(newPos);
     }
-
-    cout << "doneobj\n\n";
 }
